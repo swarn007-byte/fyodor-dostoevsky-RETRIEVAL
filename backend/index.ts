@@ -16,7 +16,7 @@ const app = express();
 
 // CORS for Vite dev server and production frontend
 app.use((req, res, next) => {
-    const origin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+    const origin = process.env.FRONTEND_ORIGIN || "http://localhost:5173" || "https://fyodor-dostoevsky-retrieval.onrender.com";
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
