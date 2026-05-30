@@ -6,9 +6,10 @@ import type { Message } from "../../store/chatStore";
 
 type MessageBubbleProps = {
   message: Message;
+  isStreaming?: boolean;
 };
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   return (
@@ -28,7 +29,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         <div className="max-w-[80%] rounded-2xl bg-panel px-4 py-2.5 text-sm leading-relaxed text-text">
           {message.content}
         </div>
-      ) : (
+      ) : message.content ? (
         <div className="max-w-[85%] text-sm leading-relaxed text-text/90 prose-invert">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -57,8 +58,16 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           >
             {message.content}
           </ReactMarkdown>
+          {isStreaming && (
+            <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-amber-600/80 align-middle" />
+          )}
         </div>
-      )}
+      ) : isStreaming ? (
+        <div className="flex items-center gap-2 py-2 text-sm text-text-muted">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-amber-700/60" />
+          <span className="text-xs">Thinking…</span>
+        </div>
+      ) : null}
     </motion.div>
   );
 }

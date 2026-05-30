@@ -1,19 +1,19 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
+import { useSession } from "../lib/auth-client";
 
 export function ProtectedRoute() {
-  const { session, loading, initialized } = useAuthStore();
+  const { data: session, isPending } = useSession();
 
-  if (!initialized || loading) {
+  if (isPending) {
     return (
-      <div className="flex h-full min-h-screen items-center justify-center bg-canvas">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+      <div className="void-root flex min-h-screen items-center justify-center bg-[#030304]">
+        <div className="h-8 w-8 animate-spin rounded-full border border-stone-800 border-t-amber-800/50" />
       </div>
     );
   }
 
-  if (!session) {
-    return <Navigate to="/login" replace />;
+  if (!session?.user) {
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

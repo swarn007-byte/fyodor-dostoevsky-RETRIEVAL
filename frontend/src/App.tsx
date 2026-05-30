@@ -1,8 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Home } from "./pages/Home";
-import { Login } from "./pages/Login";
-import { ChatPage } from "./pages/Chat";
+import { AuthPage, VoidChatPage } from "./pages/AuthPage";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { Settings } from "./pages/Settings";
 
 function AnimatedRoutes() {
@@ -15,16 +14,17 @@ function AnimatedRoutes() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-        className="h-full"
+        transition={{ duration: 0.2 }}
+        className="h-full min-h-screen"
       >
         <Routes location={location}>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/chat/:id" element={<ChatPage />} />
-          <Route path="/settings" element={<Settings />} />
-
+          <Route path="/" element={<AuthPage />} />
+          <Route path="/login" element={<AuthPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/chat" element={<VoidChatPage />} />
+            <Route path="/chat/:id" element={<VoidChatPage />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </motion.div>

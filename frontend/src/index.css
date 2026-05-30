@@ -12,6 +12,98 @@ body {
   @apply bg-canvas font-sans text-text antialiased;
 }
 
+/* ── Dostoevsky void theme ── */
+.void-root {
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.void-desk-surface {
+  background: linear-gradient(
+    180deg,
+    #1a1510 0%,
+    #120e0a 40%,
+    #0a0806 100%
+  );
+  box-shadow:
+    inset 0 2px 0 rgba(201, 162, 39, 0.06),
+    0 -8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.void-input {
+  @apply w-full rounded-md border border-stone-800/80 bg-[#060506]/90 px-3 py-2.5 text-sm text-stone-300 placeholder:text-stone-700 focus:border-amber-900/50 focus:outline-none focus:ring-1 focus:ring-amber-950/80;
+}
+
+.void-btn-primary {
+  @apply rounded-md border border-amber-950/60 bg-[#14110e] py-2.5 text-[11px] font-medium uppercase tracking-wider text-stone-400 transition-colors hover:border-amber-900/40 hover:text-stone-200 disabled:opacity-50;
+}
+
+.void-btn-social {
+  @apply flex items-center justify-center gap-2 rounded-md border border-stone-800/70 bg-[#080807] py-2.5 text-[10px] font-medium uppercase tracking-wider text-stone-500 transition-colors hover:border-stone-700 hover:text-stone-400 disabled:opacity-50;
+}
+
+.void-chat-shell {
+  @apply flex flex-col;
+}
+
+.void-chat-shell .flex.h-screen {
+  @apply h-[calc(100vh-52px)] bg-transparent;
+}
+
+.void-chat-shell aside {
+  @apply border-stone-900/80 bg-[#050506]/95;
+}
+
+.void-chat-shell .border-border {
+  border-color: rgb(38 35 32 / 0.6);
+}
+
+.void-chat-shell .bg-canvas,
+.void-chat-shell .bg-surface,
+.void-chat-shell .bg-elevated,
+.void-chat-shell .bg-panel {
+  background-color: transparent;
+}
+
+.void-chat-shell .bg-elevated\/60,
+.void-chat-shell .bg-elevated\/50 {
+  background-color: rgb(20 18 16 / 0.5);
+}
+
+.void-chat-shell .text-text {
+  @apply text-stone-300;
+}
+
+.void-chat-shell .text-text-muted {
+  @apply text-stone-600;
+}
+
+.void-chat-shell .text-accent,
+.void-chat-shell .border-accent\/50,
+.void-chat-shell .hover\:text-accent {
+  --tw-text-opacity: 1;
+  color: rgb(180 140 80 / var(--tw-text-opacity));
+}
+
+.void-chat-shell .bg-accent {
+  background-color: rgb(120 90 50 / 0.35);
+}
+
+.void-chat-shell .border-t {
+  border-color: rgb(38 35 32 / 0.5);
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scaleY(1.04);
+  }
+}
+
 /* Thin scrollbar — visible on hover */
 .scrollbar-thin {
   scrollbar-width: thin;

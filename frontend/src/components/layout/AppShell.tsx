@@ -5,8 +5,7 @@ import { Sidebar } from "../Sidebar/Sidebar";
 import { useChatStore } from "../../store/chatStore";
 import { EmptyState } from "../EmptyState/EmptyState";
 import { ChatWindow } from "../ChatWindow/ChatWindow";
-import { sendQuestion } from "../../api/chat";
-import { isAxiosError } from "axios";
+import { streamQuestion } from "../../api/chat"; // You can replace this import with your static API fetch if preferred
 
 export function AppShell() {
   const navigate = useNavigate();
@@ -22,6 +21,7 @@ export function AppShell() {
     setActiveChat,
     createChat,
     addMessage,
+    setMessageContent,
     getChat,
   } = useChatStore();
 
@@ -44,6 +44,7 @@ export function AppShell() {
   const activeChat = activeChatId ? getChat(activeChatId) : undefined;
   const showEmpty = !activeChat || activeChat.messages.length === 0;
 
+  // REMOVED STREAMING: Now handles full block updates
   const handleSend = async (text: string) => {
     let chatId = activeChatId;
 
@@ -52,23 +53,40 @@ export function AppShell() {
       navigate(`/chat/${chatId}`, { replace: true });
     }
 
+    // 1. Immediately append the user's message
     addMessage(chatId, { role: "user", content: text });
+    
+    // 2. Create a placeholder for the assistant message showing a loading state or blank
+    const assistantId = addMessage(chatId, { role: "assistant", content: "Thinking..." });
     setIsSending(true);
 
     try {
-      const res = await sendQuestion(text);
-      addMessage(chatId, { role: "assistant", content: res.answer });
-    } catch (err) {
-      const message = isAxiosError(err)
-        ? (() => {
-            const body = err.response?.data as { error?: string; details?: string };
-            return body?.details ?? body?.error ?? "Failed to reach the server.";
-          })()
-        : "Something went wrong.";
-      addMessage(chatId, {
-        role: "assistant",
-        content: `Sorry — ${message} Please try again.`,
+      let fullResponse = "";
+
+      // If your backend still sends stream chunks but you just want the UI to wait, 
+      // accumulate the tokens silently without updating the component state on every character.
+      await streamQuestion(text, {
+        onToken: (token) => {
+          fullResponse += token; 
+        },
+        onReplace: (answer) => {
+          fullResponse = answer;
+        },
+        onError: (message) => {
+          throw new Error(message);
+        },
       });
+
+      // 3. Update the UI exactly ONCE with the fully generated answer
+      setMessageContent(chatId, assistantId, fullResponse);
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong.";
+      setMessageContent(
+        chatId,
+        assistantId,
+        `Sorry — ${message} Please try again.`,
+      );
     } finally {
       setIsSending(false);
     }
@@ -126,7 +144,12 @@ export function AppShell() {
         {showEmpty && !isSending ? (
           <EmptyState onSend={handleSend} disabled={isSending} />
         ) : activeChat ? (
-          <ChatWindow chat={activeChat} onSend={handleSend} isSending={isSending} />
+          <ChatWindow
+            chat={activeChat}
+            onSend={handleSend}
+            isSending={isSending}
+            streamingMessageId={undefined} // Set to undefined since we are no longer rendering active streams
+          />
         ) : (
           <EmptyState onSend={handleSend} disabled={isSending} />
         )}

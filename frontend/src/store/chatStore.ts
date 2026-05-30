@@ -28,7 +28,9 @@ type ChatState = {
   setActiveChat: (id: string | null) => void;
   createChat: () => string;
   deleteChat: (id: string) => void;
-  addMessage: (chatId: string, message: Omit<Message, "id" | "createdAt">) => void;
+  addMessage: (chatId: string, message: Omit<Message, "id" | "createdAt">) => string;
+  appendToMessage: (chatId: string, messageId: string, delta: string) => void;
+  setMessageContent: (chatId: string, messageId: string, content: string) => void;
   getChat: (id: string) => Chat | undefined;
 };
 
@@ -77,21 +79,51 @@ export const useChatStore = create<ChatState>()(
           return { chats, activeChatId };
         }),
 
-      addMessage: (chatId, message) =>
+      addMessage: (chatId, message) => {
+        const newMessage: Message = {
+          ...message,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        };
         set((state) => ({
           chats: state.chats.map((chat) => {
             if (chat.id !== chatId) return chat;
             const isFirstUser =
               message.role === "user" && chat.messages.length === 0;
-            const newMessage: Message = {
-              ...message,
-              id: crypto.randomUUID(),
-              createdAt: new Date().toISOString(),
-            };
             return {
               ...chat,
               title: isFirstUser ? generateTitle(message.content) : chat.title,
               messages: [...chat.messages, newMessage],
+              updatedAt: new Date().toISOString(),
+            };
+          }),
+        }));
+        return newMessage.id;
+      },
+
+      appendToMessage: (chatId, messageId, delta) =>
+        set((state) => ({
+          chats: state.chats.map((chat) => {
+            if (chat.id !== chatId) return chat;
+            return {
+              ...chat,
+              messages: chat.messages.map((m) =>
+                m.id === messageId ? { ...m, content: m.content + delta } : m,
+              ),
+              updatedAt: new Date().toISOString(),
+            };
+          }),
+        })),
+
+      setMessageContent: (chatId, messageId, content) =>
+        set((state) => ({
+          chats: state.chats.map((chat) => {
+            if (chat.id !== chatId) return chat;
+            return {
+              ...chat,
+              messages: chat.messages.map((m) =>
+                m.id === messageId ? { ...m, content } : m,
+              ),
               updatedAt: new Date().toISOString(),
             };
           }),

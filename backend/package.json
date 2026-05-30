@@ -22,6 +22,7 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@supabase/supabase-js": "^2.106.2",
+    "better-auth": "^1.6.12",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "langchain": "^1.4.2",
