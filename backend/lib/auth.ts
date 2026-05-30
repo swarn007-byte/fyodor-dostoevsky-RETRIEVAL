@@ -24,6 +24,18 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  // 👇 ADD THIS ADVANCED BLOCK RIGHT HERE
+  advanced: {
+    useSecureCookies: true, // Forces secure flags
+    cookies: {
+      state: {
+        attributes: {
+          sameSite: "none",
+          secure: true,
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
   },
@@ -38,10 +50,10 @@ export const auth = betterAuth({
     },
   },
   account: {
-		accountLinking: {
-			enabled: true,
-			trustedProviders: ["google", "twitter", "email-password"],
-		},
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "twitter", "email-password"],
+    },
   },
   trustedOrigins: [
     "http://localhost:*",
