@@ -14,7 +14,7 @@ export const authClient = createAuthClient({
   // ADD THIS BLOCK: Disables strict cookie state validation 
   // only while testing on localhost
   advanced: {
-    disableStateCheck: import.meta.env.DEV, 
+    disableStateCheck: true, 
   }
 });
 
