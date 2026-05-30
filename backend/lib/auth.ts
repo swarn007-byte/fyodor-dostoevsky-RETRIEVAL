@@ -24,7 +24,6 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  // 👇 ADD THIS ADVANCED BLOCK RIGHT HERE
   advanced: {
     useSecureCookies: true, // Forces secure flags
     cookies: {
@@ -43,6 +42,8 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      // 👇 ADD THIS LINE TO MATCH THE FRONTEND SKIP
+      skipStateCookieCheck: true, 
     },
     twitter: {
       clientId: process.env.TWITTER_CLIENT_ID ?? "YOUR_TWITTER_CLIENT_ID",
