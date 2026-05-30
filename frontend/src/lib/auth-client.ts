@@ -1,18 +1,11 @@
 import { createAuthClient } from "better-auth/react";
 
-const apiBase =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
-
-const authBaseURL = import.meta.env.DEV
-  ? typeof window !== "undefined"
-    ? window.location.origin
-    : "http://localhost:5173"
-  : apiBase;
+// In dev, it uses localhost:5173. In prod, it uses your vercel domain.
+// Vercel routes the requests to Render automatically behind the scenes!
+const authBaseURL = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
 
 export const authClient = createAuthClient({
   baseURL: authBaseURL,
-  // ADD THIS BLOCK: Disables strict cookie state validation 
-  // only while testing on localhost
   advanced: {
     disableStateCheck: true, 
   }

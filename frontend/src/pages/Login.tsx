@@ -58,8 +58,7 @@ export function Login() {
     try {
       await signIn.social({
         provider: "google",
-        // 👇 This forces the browser to go straight to /chat after login
-        callbackURL: "https://fyodor-dostoevsky-retrieval.vercel.app/chat", 
+        callbackURL: `${window.location.origin}/chat`, 
       });
     }catch (err) {
       setError(err instanceof Error ? err.message : "Google authentication failed");
