@@ -1,5 +1,6 @@
 import { getApiBase } from "../lib/api-base";
 import { getGuestId } from "../lib/guest-id";
+import { getSessionToken } from "../lib/auth-client";
 
 export type BookRecord = {
   id: string;
@@ -17,6 +18,7 @@ async function booksFetch(path: string, init?: RequestInit) {
     credentials: "include",
     headers: {
       "x-guest-id": getGuestId(),
+      "x-session-token": getSessionToken(),
       ...(init?.headers ?? {}),
     },
   });

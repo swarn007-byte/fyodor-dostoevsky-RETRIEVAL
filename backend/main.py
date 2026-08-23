@@ -128,7 +128,7 @@ def create_session(response: Response, user_id: str) -> dict:
         max_age=SESSION_DAYS * 24 * 60 * 60,
         path="/",
     )
-    return {"userId": user_id, "expiresAt": expires.isoformat()}
+    return {"userId": user_id, "token": token, "expiresAt": expires.isoformat()}
 
 
 def get_user_from_session(token: str | None) -> dict | None:
@@ -146,8 +146,12 @@ def get_user_from_session(token: str | None) -> dict | None:
     return row_to_dict(row)
 
 
-def owner_key(session_token: str | None, guest_id: str | None) -> str | None:
-    user = get_user_from_session(session_token)
+def owner_key(
+    session_token: str | None,
+    guest_id: str | None,
+    header_token: str | None = None,
+) -> str | None:
+    user = get_user_from_session(session_token) or (get_user_from_session(header_token) if header_token else None)
     if user:
         return f"user:{user['id']}"
     if guest_id and re.match(r"^[a-zA-Z0-9_-]{8,100}$", guest_id):
@@ -466,8 +470,9 @@ def google_callback(request: Request, code: str, state: str = "/projects") -> Re
 def list_books(
     x_guest_id: Annotated[str | None, Header(alias="x-guest-id")] = None,
     reszvault_session: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    x_session_token: Annotated[str | None, Header(alias="x-session-token")] = None,
 ) -> dict:
-    owner = owner_key(reszvault_session, x_guest_id)
+    owner = owner_key(reszvault_session, x_guest_id, x_session_token)
     if not owner:
         return {"books": []}
     with db() as conn:
@@ -485,8 +490,9 @@ async def upload_book(
     title: Annotated[str | None, Form()] = None,
     x_guest_id: Annotated[str | None, Header(alias="x-guest-id")] = None,
     reszvault_session: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    x_session_token: Annotated[str | None, Header(alias="x-session-token")] = None,
 ) -> JSONResponse:
-    owner = owner_key(reszvault_session, x_guest_id)
+    owner = owner_key(reszvault_session, x_guest_id, x_session_token)
     if not owner:
         raise HTTPException(status_code=400, detail="A vault session is required for upload.")
     if file.content_type != "application/pdf" and not file.filename.lower().endswith(".pdf"):
@@ -533,8 +539,9 @@ def delete_book(
     book_id: str,
     x_guest_id: Annotated[str | None, Header(alias="x-guest-id")] = None,
     reszvault_session: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    x_session_token: Annotated[str | None, Header(alias="x-session-token")] = None,
 ) -> dict:
-    owner = owner_key(reszvault_session, x_guest_id)
+    owner = owner_key(reszvault_session, x_guest_id, x_session_token)
     if not owner:
         raise HTTPException(status_code=401, detail="Sign in required")
     with db() as conn:
@@ -557,10 +564,11 @@ def chat(
     payload: ChatRequest,
     x_guest_id: Annotated[str | None, Header(alias="x-guest-id")] = None,
     reszvault_session: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    x_session_token: Annotated[str | None, Header(alias="x-session-token")] = None,
 ) -> dict:
     if not payload.question.strip():
         raise HTTPException(status_code=400, detail="Question is required")
-    owner = owner_key(reszvault_session, x_guest_id)
+    owner = owner_key(reszvault_session, x_guest_id, x_session_token)
     block_reason = chat_block_reason(owner, payload.bookId, payload.bookIds)
     if block_reason:
         raise HTTPException(status_code=409, detail=block_reason)
@@ -574,10 +582,11 @@ def chat_stream(
     payload: ChatRequest,
     x_guest_id: Annotated[str | None, Header(alias="x-guest-id")] = None,
     reszvault_session: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    x_session_token: Annotated[str | None, Header(alias="x-session-token")] = None,
 ) -> StreamingResponse:
     if not payload.question.strip():
         raise HTTPException(status_code=400, detail="Question is required")
-    owner = owner_key(reszvault_session, x_guest_id)
+    owner = owner_key(reszvault_session, x_guest_id, x_session_token)
     block_reason = chat_block_reason(owner, payload.bookId, payload.bookIds)
     if block_reason:
         raise HTTPException(status_code=409, detail=block_reason)

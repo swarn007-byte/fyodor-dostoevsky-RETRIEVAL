@@ -22,6 +22,22 @@ type AuthResult = {
   error?: { message?: string } | null;
 };
 
+const SESSION_TOKEN_KEY = "reszvault-session-token";
+
+export function getSessionToken(): string {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(SESSION_TOKEN_KEY) ?? "";
+}
+
+export function setSessionToken(token: string) {
+  if (typeof window === "undefined") return;
+  if (token) {
+    window.localStorage.setItem(SESSION_TOKEN_KEY, token);
+  } else {
+    window.localStorage.removeItem(SESSION_TOKEN_KEY);
+  }
+}
+
 async function authFetch(path: string, init?: RequestInit): Promise<AuthResult> {
   const response = await fetch(`${getApiBase()}${path}`, {
     ...init,
@@ -33,9 +49,14 @@ async function authFetch(path: string, init?: RequestInit): Promise<AuthResult> 
   });
   const body = (await response.json().catch(() => ({}))) as AuthResult & {
     detail?: string;
+    data?: { session?: { token?: string } };
   };
   if (!response.ok) {
     return { error: { message: body.detail ?? body.error?.message ?? `Request failed (${response.status})` } };
+  }
+  // Store session token from response for Vercel proxy compatibility
+  if (body.data?.session?.token) {
+    setSessionToken(body.data.session.token);
   }
   return body;
 }
@@ -43,6 +64,9 @@ async function authFetch(path: string, init?: RequestInit): Promise<AuthResult> 
 async function loadSession(): Promise<SessionData> {
   const response = await fetch(`${getApiBase()}/api/auth/session`, {
     credentials: "include",
+    headers: {
+      "x-session-token": getSessionToken(),
+    },
   });
   if (!response.ok) return { user: null, session: null };
   return (await response.json()) as SessionData;
@@ -114,11 +138,13 @@ export const authClient = {
       return { error: null };
     },
   },
-  signOut: async () =>
-    authFetch("/api/auth/sign-out", {
+  signOut: async () => {
+    setSessionToken("");
+    return authFetch("/api/auth/sign-out", {
       method: "POST",
       body: JSON.stringify({}),
-    }),
+    });
+  },
 };
 
 export const signIn = authClient.signIn;

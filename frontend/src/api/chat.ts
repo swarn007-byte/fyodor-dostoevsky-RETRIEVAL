@@ -1,6 +1,7 @@
 import { api } from "./client";
 import { getApiBase } from "../lib/api-base";
 import { getGuestId } from "../lib/guest-id";
+import { getSessionToken } from "../lib/auth-client";
 
 export type ChatApiResponse = {
   success: boolean;
@@ -79,7 +80,11 @@ export async function streamQuestion(
   try {
     res = await fetch(`${getApiBase()}/chat/stream`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-guest-id": getGuestId() },
+      headers: {
+        "Content-Type": "application/json",
+        "x-guest-id": getGuestId(),
+        "x-session-token": getSessionToken(),
+      },
       credentials: "include",
       body: JSON.stringify({
         question,
