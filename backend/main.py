@@ -539,6 +539,23 @@ async def upload_book(
     )
 
 
+@app.get("/books/{book_id}")
+def get_book(
+    book_id: str,
+    x_guest_id: Annotated[str | None, Header(alias="x-guest-id")] = None,
+    reszvault_session: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+    x_session_token: Annotated[str | None, Header(alias="x-session-token")] = None,
+) -> dict:
+    owner = owner_key(reszvault_session, x_guest_id, x_session_token)
+    if not owner:
+        raise HTTPException(status_code=401, detail="Sign in required")
+    with db() as conn:
+        row = row_to_dict(conn.execute("SELECT * FROM books WHERE id = ? AND owner_key = ?", (book_id, owner)).fetchone())
+    if not row:
+        raise HTTPException(status_code=404, detail="Book not found")
+    return {"book": serialize_book(row)}
+
+
 @app.delete("/books/{book_id}")
 def delete_book(
     book_id: str,

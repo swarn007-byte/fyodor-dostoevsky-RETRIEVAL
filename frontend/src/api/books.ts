@@ -57,6 +57,11 @@ export async function uploadBook(file: File, title?: string): Promise<BookRecord
   return data.book;
 }
 
+export async function getBook(id: string): Promise<BookRecord | null> {
+  const data = await booksFetch(`/books/${id}`);
+  return data.book ?? null;
+}
+
 export async function deleteBook(id: string): Promise<void> {
   await booksFetch(`/books/${id}`, { method: "DELETE" });
 }

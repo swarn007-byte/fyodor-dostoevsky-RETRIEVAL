@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surreal Flower Head - Horizon</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{min-height:100vh;display:flex;justify-content:center;align-items:center;background:#f0efec;font-family:'Cormorant Garamond',serif;overflow:hidden}
+        .scene{position:relative;width:700px;height:950px;display:flex;justify-content:center;align-items:center}
+        .ap{position:absolute;pointer-events:none}.ap svg{width:100%;height:100%}
+        .ap:nth-child(1){width:14px;height:20px;top:12%;left:18%;opacity:0;animation:drift 13s ease-in-out 0s infinite}
+        .ap:nth-child(2){width:10px;height:16px;top:20%;left:78%;opacity:0;animation:drift 15s ease-in-out 2s infinite}
+        .ap:nth-child(3){width:12px;height:18px;top:70%;left:12%;opacity:0;animation:drift 11s ease-in-out 4s infinite}
+        .ap:nth-child(4){width:8px;height:14px;top:62%;left:85%;opacity:0;animation:drift 14s ease-in-out 1s infinite}
+        @keyframes drift{0%,100%{opacity:0;transform:translateY(0) rotate(0)}10%{opacity:.45}50%{opacity:.25;transform:translateY(-30px) rotate(18deg)}90%{opacity:.45}}
+        .figure{position:relative;display:flex;flex-direction:column;align-items:center}
+        .main-svg{width:460px;height:740px}
+        .brand-text{margin-top:8px;text-align:center}
+        .brand-text h1{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:400;color:#3a3a3a;letter-spacing:.06em}
+    </style>
+</head>
+<body>
+    <div class="scene">
+        <div class="ap"><svg viewBox="0 0 20 28"><path d="M10 0C15 8,20 16,10 28C0 16,5 8,10 0Z" fill="rgba(255,255,255,.7)"/></svg></div>
+        <div class="ap"><svg viewBox="0 0 20 28"><path d="M10 0C15 8,20 16,10 28C0 16,5 8,10 0Z" fill="rgba(255,255,255,.7)"/></svg></div>
+        <div class="ap"><svg viewBox="0 0 20 28"><path d="M10 0C15 8,20 16,10 28C0 16,5 8,10 0Z" fill="rgba(255,255,255,.7)"/></svg></div>
+        <div class="ap"><svg viewBox="0 0 20 28"><path d="M10 0C15 8,20 16,10 28C0 16,5 8,10 0Z" fill="rgba(255,255,255,.7)"/></svg></div>
+        <div class="figure">
+            <svg class="main-svg" viewBox="0 0 460 740" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <clipPath id="sc">
+                        <path d="M110 75 C140 68,180 65,220 67 C260 69,300 66,320 72 C332 76,335 86,328 93 C320 100,295 103,255 100 C215 97,175 100,140 98 C120 96,108 84,110 75Z"/>
+                        <path d="M118 106 C148 99,185 96,225 98 C265 100,298 97,318 103 C328 107,328 116,322 122 C315 128,290 131,252 128 C214 125,174 128,145 126 C128 124,112 114,118 106Z"/>
+                        <path d="M128 136 C158 129,192 126,230 128 C268 130,296 127,314 133 C322 137,322 145,316 151 C310 157,286 160,250 157 C214 154,176 157,150 155 C135 153,120 144,128 136Z"/>
+                        <path d="M140 165 C168 158,200 155,235 157 C270 159,292 156,308 162 C316 165,316 173,310 179 C304 185,282 188,248 185 C214 182,180 185,156 183 C140 181,130 173,140 165Z"/>
+                        <path d="M155 193 C180 186,208 183,240 185 C272 187,288 184,300 189 C308 192,308 199,302 204 C296 210,276 212,246 210 C216 208,186 210,165 208 C150 206,143 200,155 193Z"/>
+                        <path d="M172 218 C192 213,214 210,242 212 C268 214,282 211,292 215 C298 218,298 223,294 227 C288 231,272 233,245 231 C218 229,194 231,178 229 C166 227,162 222,172 218Z"/>
+                    </clipPath>
+                    <filter id="gl" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="8"/>
+                    </filter>
+                    <filter id="fs" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#ccc" flood-opacity="0.3"/>
+                    </filter>
+                </defs>
+
+                <ellipse cx="230" cy="152" rx="105" ry="85" fill="#87CEEB" opacity="0.07" filter="url(#gl)"/>
+
+                <g clip-path="url(#sc)" filter="url(#fs)">
+                    <path d="M230 210 C230 200, 228 185, 230 170 C232 155, 230 142, 230 130" stroke="#6b8f3c" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <g transform="translate(230, 155)">
+                        <g fill="white" stroke="#e8e4dc" stroke-width="0.3">
+                            <ellipse rx="13" ry="38" transform="rotate(0) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(30) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(60) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(90) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(120) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(150) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(180) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(210) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(240) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(270) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(300) translate(0,-40)"/>
+                            <ellipse rx="13" ry="38" transform="rotate(330) translate(0,-40)"/>
+                        </g>
+                        <g fill="#faf9f7" stroke="none" opacity="0.8">
+                            <ellipse rx="9" ry="28" transform="rotate(15) translate(0,-32)"/>
+                            <ellipse rx="9" ry="28" transform="rotate(75) translate(0,-32)"/>
+                            <ellipse rx="9" ry="28" transform="rotate(135) translate(0,-32)"/>
+                            <ellipse rx="9" ry="28" transform="rotate(195) translate(0,-32)"/>
+                            <ellipse rx="9" ry="28" transform="rotate(255) translate(0,-32)"/>
+                            <ellipse rx="9" ry="28" transform="rotate(315) translate(0,-32)"/>
+                        </g>
+                        <circle r="16" fill="#d4880f"/>
+                        <circle r="13" fill="#e8a020"/>
+                        <circle r="9" fill="#f0b830"/>
+                        <circle r="5" fill="#f5c842"/>
+                        <circle cx="-4" cy="-4" r="1.2" fill="#b06808" opacity="0.5"/>
+                        <circle cx="4" cy="-3" r="1" fill="#b06808" opacity="0.45"/>
+                        <circle cx="0" cy="5" r="1.1" fill="#b06808" opacity="0.5"/>
+                        <circle cx="-6" cy="2" r="0.9" fill="#b06808" opacity="0.35"/>
+                        <circle cx="6" cy="4" r="0.9" fill="#b06808" opacity="0.35"/>
+                    </g>
+                </g>
+
+                <g stroke="#87CEEB" fill="none" stroke-width="2" stroke-linecap="round" opacity="0.9">
+                    <path d="M110 75 C140 68,180 65,220 67 C260 69,300 66,320 72 C332 76,335 86,328 93 C320 100,295 103,255 100 C215 97,175 100,140 98 C120 96,108 84,110 75Z"/>
+                    <path d="M118 106 C148 99,185 96,225 98 C265 100,298 97,318 103 C328 107,328 116,322 122 C315 128,290 131,252 128 C214 125,174 128,145 126 C128 124,112 114,118 106Z"/>
+                    <path d="M128 136 C158 129,192 126,230 128 C268 130,296 127,314 133 C322 137,322 145,316 151 C310 157,286 160,250 157 C214 154,176 157,150 155 C135 153,120 144,128 136Z"/>
+                    <path d="M140 165 C168 158,200 155,235 157 C270 159,292 156,308 162 C316 165,316 173,310 179 C304 185,282 188,248 185 C214 182,180 185,156 183 C140 181,130 173,140 165Z"/>
+                    <path d="M155 193 C180 186,208 183,240 185 C272 187,288 184,300 189 C308 192,308 199,302 204 C296 210,276 212,246 210 C216 208,186 210,165 208 C150 206,143 200,155 193Z"/>
+                    <path d="M172 218 C192 213,214 210,242 212 C268 214,282 211,292 215 C298 218,298 223,294 227 C288 231,272 233,245 231 C218 229,194 231,178 229 C166 227,162 222,172 218Z"/>
+                </g>
+
+                <line x1="230" y1="230" x2="230" y2="270" stroke="#87CEEB" stroke-width="2.5"/>
+
+                <path d="M230 270 C230 270,214 277,194 290 C174 303,152 324,140 352 C130 376,128 408,132 442 L132 610 C132 622,140 630,150 630 L310 630 C320 630,328 622,328 610 L328 442 C332 408,330 376,320 352 C308 324,286 303,266 290 C246 277,230 270,230 270Z" stroke="#87CEEB" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <path d="M230 270 L192 308 L210 318 L230 292" stroke="#87CEEB" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M230 270 L268 308 L250 318 L230 292" stroke="#87CEEB" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M140 352 C120 366,106 388,102 416 C98 440,110 462,132 462" stroke="#87CEEB" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M320 352 C340 366,354 388,358 416 C362 440,350 462,328 462" stroke="#87CEEB" stroke-width="2" stroke-linecap="round" fill="none"/>
+                <path d="M194 290 C174 298,156 312,146 336" stroke="#87CEEB" stroke-width="1.2" fill="none" opacity="0.4"/>
+                <path d="M266 290 C286 298,304 312,314 336" stroke="#87CEEB" stroke-width="1.2" fill="none" opacity="0.4"/>
+                <line x1="230" y1="318" x2="230" y2="630" stroke="#87CEEB" stroke-width="1.5" opacity="0.35"/>
+                <circle cx="230" cy="358" r="6" fill="none" stroke="#87CEEB" stroke-width="2"/><circle cx="230" cy="358" r="1.8" fill="#87CEEB"/>
+                <circle cx="230" cy="398" r="6" fill="none" stroke="#87CEEB" stroke-width="2"/><circle cx="230" cy="398" r="1.8" fill="#87CEEB"/>
+                <circle cx="230" cy="438" r="6" fill="none" stroke="#87CEEB" stroke-width="2"/><circle cx="230" cy="438" r="1.8" fill="#87CEEB"/>
+                <circle cx="230" cy="478" r="6" fill="none" stroke="#87CEEB" stroke-width="2"/><circle cx="230" cy="478" r="1.8" fill="#87CEEB"/>
+                <circle cx="230" cy="518" r="6" fill="none" stroke="#87CEEB" stroke-width="2"/><circle cx="230" cy="518" r="1.8" fill="#87CEEB"/>
+                <circle cx="230" cy="558" r="6" fill="none" stroke="#87CEEB" stroke-width="2"/><circle cx="230" cy="558" r="1.8" fill="#87CEEB"/>
+                <circle cx="230" cy="598" r="6" fill="none" stroke="#87CEEB" stroke-width="2"/><circle cx="230" cy="598" r="1.8" fill="#87CEEB"/>
+            </svg>
+            <div class="brand-text"><h1>Horizon</h1></div>
+        </div>
+    </div>
+</body>
+</html>

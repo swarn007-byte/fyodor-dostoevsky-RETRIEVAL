@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { BookRecord } from "../api/books";
-import { deleteBook, listBooks, uploadBook } from "../api/books";
+import { deleteBook, getBook, listBooks, uploadBook } from "../api/books";
 
 /** default = whole project / all ready sources */
 export type SelectedBook = { kind: "default" } | { kind: "user"; id: string };
@@ -127,11 +127,30 @@ export const useBookStore = create<BookState>()(
             const poll = async (attempts = 0): Promise<BookRecord> => {
               if (attempts > 40) throw new Error("Indexing timed out — try a smaller PDF.");
               await new Promise((r) => setTimeout(r, 3000));
-              const books = await listBooks();
-              const updated = books.find((b) => b.id === book.id);
-              if (!updated) throw new Error("Upload lost — try again.");
+
+              // Use direct book lookup for the first 5 polls (faster, handles transient DB misses)
+              let updated: BookRecord | undefined;
+              if (attempts < 5) {
+                const found = await getBook(book.id).catch(() => null);
+                if (found) updated = found;
+              }
+              // Fall back to full list
+              if (!updated) {
+                const books = await listBooks();
+                updated = books.find((b) => b.id === book.id);
+              }
+
+              if (!updated) {
+                // Allow a few transient misses (Render warm-up, DB commit delay)
+                if (attempts < 5) return poll(attempts + 1);
+                throw new Error("Upload lost — try again.");
+              }
+
               set((state) => ({
-                books,
+                books: [
+                  updated!,
+                  ...state.books.filter((b) => b.id !== updated!.id),
+                ],
                 projectBookIds: projectId
                   ? {
                       ...state.projectBookIds,

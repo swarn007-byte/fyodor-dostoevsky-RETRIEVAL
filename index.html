@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brew & Bean - Artisan Coffee Shop</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <i class="fas fa-mug-hot"></i>
+                <span>Brew & Bean</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#menu" class="nav-link">Menu</a></li>
+                <li><a href="#gallery" class="nav-link">Gallery</a></li>
+                <li><a href="#testimonials" class="nav-link">Reviews</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Crafted with Passion,<br>Served with Love</h1>
+            <p class="hero-subtitle">Experience the finest artisan coffee in town</p>
+            <div class="hero-buttons">
+                <a href="#menu" class="btn btn-primary">Explore Menu</a>
+                <a href="#contact" class="btn btn-secondary">Visit Us</a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title">Our Story</h2>
+                    <p class="about-description">
+                        Founded in 2015, Brew & Bean started as a small passion project between two friends 
+                        who shared a love for exceptional coffee. Today, we've grown into a beloved 
+                        community hub where coffee lovers gather to enjoy handcrafted beverages made 
+                        from ethically sourced beans.
+                    </p>
+                    <p class="about-description">
+                        Every cup we serve tells a story - from the farmers who cultivate our beans 
+                        to the baristas who perfect each pour. We believe in sustainability, quality, 
+                        and creating moments that matter.
+                    </p>
+                    <div class="about-features">
+                        <div class="feature">
+                            <i class="fas fa-seedling"></i>
+                            <h4>100% Organic</h4>
+                            <p>Ethically sourced beans</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-award"></i>
+                            <h4>Award Winning</h4>
+                            <p>Quality recognized</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-heart"></i>
+                            <h4>Made with Love</h4>
+                            <p>Passion in every cup</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com-1495474472287-4d71bcdd2085?w=600&h=800&fit=crop" alt="Coffee being poured">
+                        <div class="experience-badge">
+                            <span class="years">8+</span>
+                            <span class="text">Years of Excellence</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="menu">
+        <div class="container">
+            <h2 class="section-title">Our Menu</h2>
+            <p class="section-subtitle">Discover our carefully curated selection of beverages and treats</p>
+            
+            <div class="menu-tabs">
+                <button class="tab-btn active" data-category="coffee">Coffee</button>
+                <button class="tab-btn" data-category="specialty">Specialty</button>
+                <button class="tab-btn" data-category="pastries">Pastries</button>
+                <button class="tab-btn" data-category="cold">Cold Drinks</button>
+            </div>
+
+            <div class="menu-grid" id="menuGrid">
+                <!-- Menu items will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="gallery">
+        <div class="container">
+            <h2 class="section-title">Gallery</h2>
+            <p class="section-subtitle">A glimpse into our cozy space</p>
+            <div class="gallery-grid">
+                <div class="gallery-item large">
+                    <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&h=600&fit=crop" alt="Coffee shop interior">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-expand"></i>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop" alt="Latte art">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-expand"></i>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400&h=400&fit=crop" alt="Coffee beans">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-expand"></i>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=400&fit=crop" alt="Cappuccino">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-expand"></i>
+                    </div>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400&h=400&fit=crop" alt="Pastry display">
+                    <div class="gallery-overlay">
+                        <i class="fas fa-expand"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <h2 class="section-title">What Our Customers Say</h2>
+            <div class="testimonial-slider">
+                <div class="testimonial-track" id="testimonialTrack">
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"The best coffee I've ever had! The atmosphere is so cozy and the staff are incredibly friendly. This is my go-to spot for work meetings."</p>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah M.">
+                            <div>
+                                <h4>Sarah M.</h4>
+                                <span>Regular Customer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"I'm a coffee snob and Brew & Bean exceeded my expectations. Their single-origin pour-over is absolutely divine. Worth every penny!"</p>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="James T.">
+                            <div>
+                                <h4>James T.</h4>
+                                <span>Coffee Enthusiast</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"Perfect place for a weekend brunch! The pastries are fresh and the lavender latte is to die for. Highly recommend!"</p>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Emily R.">
+                            <div>
+                                <h4>Emily R.</h4>
+                                <span>Food Blogger</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-nav">
+                    <button class="nav-btn prev" id="prevBtn">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="nav-dots" id="navDots"></div>
+                    <button class="nav-btn next" id="nextBtn">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <h2 class="section-title">Visit Us</h2>
+                    <p class="contact-description">We'd love to see you! Drop by for a cup of coffee or just to say hello.</p>
+                    
+                    <div class="info-items">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h4>Location</h4>
+                                <p>123 Coffee Street, Bean City, BC 12345</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h4>Hours</h4>
+                                <p>Mon-Fri: 7am - 8pm<br>Sat-Sun: 8am - 9pm</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <h4>Phone</h4>
+                                <p>(555) 123-4567</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <h4>Email</h4>
+                                <p>hello@brewandbean.com</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+
+                <div class="contact-form">
+                    <h3>Send us a message</h3>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" id="name" name="name" required placeholder=" ">
+                            <label for="name">Your Name</label>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" id="email" name="email" required placeholder=" ">
+                            <label for="email">Your Email</label>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="subject" name="subject" required placeholder=" ">
+                            <label for="subject">Subject</label>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="message" name="message" rows="4" required placeholder=" "></textarea>
+                            <label for="message">Your Message</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <span>Send Message</span>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <i class="fas fa-mug-hot"></i>
+                        <span>Brew & Bean</span>
+                    </a>
+                    <p>Crafting moments, one cup at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#menu">Menu</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Hours</h4>
+                    <ul>
+                        <li>Monday - Friday: 7am - 8pm</li>
+                        <li>Saturday: 8am - 9pm</li>
+                        <li>Sunday: 8am - 9pm</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Brew & Bean. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="lightboxClose">
+            <i class="fas fa-times"></i>
+        </button>
+        <img src="" alt="Gallery image" id="lightboxImg">
+    </div>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
