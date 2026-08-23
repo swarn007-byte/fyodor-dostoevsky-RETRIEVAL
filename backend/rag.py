@@ -2,12 +2,12 @@
 RAG core for a multi-PDF question-answering app.
 
 Requires:
-    pip install sentence-transformers numpy
+    pip install sentence-transformers numpy rank-bm25
 
 Design:
 - Ingestion (elsewhere, in document_parser.py): PDFs -> text -> chunks.
 - This file: embed chunks once per book, embed each question, retrieve by
-  cosine similarity across ALL uploaded books (not per-book keyword loops),
+  hybrid (BM25 + dense) similarity across ALL uploaded books,
   then ask an LLM to answer strictly from the retrieved context.
 """
 
@@ -21,27 +21,35 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 import numpy as np
+from rank_bm25 import BM25Okapi
 
-from document_parser import compact_text, source_chunks
+from document_parser import Chunk, compact_text, source_chunks
 
 
 MISSING_REPLY = "I could not find that in the uploaded sources."
 NO_BOOKS_REPLY = "Upload one or more PDFs first, then I can answer from your sources."
 
 EMBED_MODEL_NAME = os.getenv("RAG_EMBED_MODEL", "all-MiniLM-L6-v2")
-TOP_K = 6
+TOP_K = 10
 # Cosine similarity floor (embeddings are normalized, so this is a dot product).
 # Chunks scoring below this are treated as not actually relevant -- this is
 # what replaces the old hardcoded off-topic keyword blocklist.
-MIN_SIMILARITY = 0.30
+MIN_SIMILARITY = 0.15
+# BM25 similarity floor (normalized to 0-1 range)
+MIN_BM25_SCORE = 0.10
+# Hybrid weights: dense (embedding) vs sparse (BM25)
+DENSE_WEIGHT = 0.7
+SPARSE_WEIGHT = 0.3
 
 
 @dataclass
 class BookContext:
     id: str
     title: str
-    chunks: list[str]
+    chunks: list[Chunk]
     chunk_embeddings: np.ndarray | None = field(default=None, repr=False)
+    bm25_index: BM25Okapi | None = field(default=None, repr=False)
+    chunk_tokens: list[list[str]] | None = field(default=None, repr=False)
 
 
 @dataclass
@@ -57,6 +65,15 @@ class ContextResult:
     text: str
     used_chunks: int
     is_final_answer: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Tokenization for BM25
+# ---------------------------------------------------------------------------
+
+def tokenize_text(text: str) -> list[str]:
+    """Simple tokenization for BM25: lowercase, split on non-alphanumeric."""
+    return re.findall(r'\b\w+\b', text.lower())
 
 
 # ---------------------------------------------------------------------------
@@ -83,13 +100,37 @@ def ensure_book_embeddings(book: BookContext) -> None:
     """Compute and cache chunk embeddings for a book if not already done."""
     if book.chunk_embeddings is not None and len(book.chunk_embeddings) == len(book.chunks):
         return
-    book.chunk_embeddings = embed_texts(book.chunks)
+    texts = [chunk.text if isinstance(chunk, Chunk) else chunk for chunk in book.chunks]
+    book.chunk_embeddings = embed_texts(texts)
+
+
+def ensure_book_bm25(book: BookContext) -> None:
+    """Compute and cache BM25 index for a book if not already done."""
+    if book.bm25_index is not None and book.chunk_tokens is not None:
+        return
+    texts = [chunk.text if isinstance(chunk, Chunk) else chunk for chunk in book.chunks]
+    book.chunk_tokens = [tokenize_text(text) for text in texts]
+    book.bm25_index = BM25Okapi(book.chunk_tokens)
 
 
 def cosine_scores(query_vec: np.ndarray, chunk_vecs: np.ndarray) -> np.ndarray:
     if chunk_vecs.shape[0] == 0:
         return np.zeros((0,), dtype=np.float32)
     return chunk_vecs @ query_vec  # already normalized -> dot product == cosine sim
+
+
+def bm25_scores(query: str, book: BookContext) -> np.ndarray:
+    """Get BM25 scores for a query against a book's chunks, normalized to 0-1."""
+    ensure_book_bm25(book)
+    if not book.chunk_tokens:
+        return np.zeros((0,), dtype=np.float32)
+    query_tokens = tokenize_text(query)
+    scores = book.bm25_index.get_scores(query_tokens)
+    # Normalize to 0-1 range
+    max_score = scores.max()
+    if max_score > 0:
+        scores = scores / max_score
+    return scores.astype(np.float32)
 
 
 # ---------------------------------------------------------------------------
@@ -101,8 +142,8 @@ def retrieve_chunks(
     query_vec: np.ndarray,
     force_all: bool = False,
     top_k: int = TOP_K,
-) -> list[tuple[float, str]]:
-    """Top-k (score, chunk) pairs for a single book."""
+) -> list[tuple[float, Chunk]]:
+    """Top-k (score, chunk) pairs for a single book using dense retrieval."""
     if force_all:
         return [(1.0, chunk) for chunk in book.chunks[:40]]
 
@@ -118,18 +159,61 @@ def retrieve_chunks(
     ]
 
 
+def retrieve_chunks_hybrid(
+    book: BookContext,
+    query: str,
+    query_vec: np.ndarray,
+    force_all: bool = False,
+    top_k: int = TOP_K,
+    dense_weight: float = DENSE_WEIGHT,
+    sparse_weight: float = SPARSE_WEIGHT,
+) -> list[tuple[float, Chunk]]:
+    """Top-k (score, chunk) pairs for a single book using hybrid BM25 + dense retrieval."""
+    if force_all:
+        return [(1.0, chunk) for chunk in book.chunks[:40]]
+
+    ensure_book_embeddings(book)
+    ensure_book_bm25(book)
+
+    if book.chunk_embeddings is None or len(book.chunks) == 0:
+        return []
+
+    # Dense scores
+    dense_scores = cosine_scores(query_vec, book.chunk_embeddings)
+
+    # BM25 scores
+    sparse_scores = bm25_scores(query, book)
+
+    # Combine scores with weights
+    hybrid_scores = (dense_weight * dense_scores) + (sparse_weight * sparse_scores)
+
+    ranked_indices = np.argsort(-hybrid_scores)[:top_k]
+    return [
+        (float(hybrid_scores[i]), book.chunks[i])
+        for i in ranked_indices
+        if hybrid_scores[i] >= MIN_SIMILARITY
+    ]
+
+
 def retrieve_across_books(
     question: str,
     books: list[BookContext],
     force_all: bool = False,
     top_k: int = TOP_K,
-) -> list[tuple[float, str, str]]:
+    use_hybrid: bool = True,
+) -> list[tuple[float, str, Chunk]]:
     """Retrieve top chunks ranked GLOBALLY across all books. Returns (score, title, chunk)."""
     query_vec = embed_texts([question])[0]
-    pooled: list[tuple[float, str, str]] = []
+    pooled: list[tuple[float, str, Chunk]] = []
+
     for book in books:
-        for score, chunk in retrieve_chunks(book, query_vec, force_all=force_all, top_k=top_k):
-            pooled.append((score, book.title, chunk))
+        if use_hybrid:
+            for score, chunk in retrieve_chunks_hybrid(book, question, query_vec, force_all=force_all, top_k=top_k):
+                pooled.append((score, book.title, chunk))
+        else:
+            for score, chunk in retrieve_chunks(book, query_vec, force_all=force_all, top_k=top_k):
+                pooled.append((score, book.title, chunk))
+
     pooled.sort(key=lambda item: item[0], reverse=True)
     return pooled if force_all else pooled[:top_k]
 
@@ -187,7 +271,8 @@ def extractive_project_summary(books: list[BookContext]) -> str:
         "",
     ]
     for book in books:
-        sentences = re.split(r"(?<=[.!?])\s+", compact_text(" ".join(book.chunks), 1400))
+        texts = [chunk.text if isinstance(chunk, Chunk) else chunk for chunk in book.chunks]
+        sentences = re.split(r"(?<=[.!?])\s+", compact_text(" ".join(texts), 1400))
         facts = [sentence.strip() for sentence in sentences if len(sentence.strip()) > 24][:4]
         sections.append(f"### {book.title}")
         sections.extend([f"- {fact}" for fact in facts] or ["- No readable facts were extracted from this source."])
@@ -195,7 +280,11 @@ def extractive_project_summary(books: list[BookContext]) -> str:
     return "\n".join(sections).strip()
 
 
-def prepare_context(question: str, books: list[BookContext]) -> ContextResult:
+def prepare_context(
+    question: str,
+    books: list[BookContext],
+    use_hybrid: bool = True,
+) -> ContextResult:
     if not books:
         return ContextResult(NO_BOOKS_REPLY, 0, is_final_answer=True)
 
@@ -207,12 +296,12 @@ def prepare_context(question: str, books: list[BookContext]) -> ContextResult:
         return ContextResult(extractive_project_summary(books), len(books), is_final_answer=True)
 
     force_all = wants_full_list(question)
-    results = retrieve_across_books(question, books, force_all=force_all)
+    results = retrieve_across_books(question, books, force_all=force_all, use_hybrid=use_hybrid)
 
     if not results:
         return ContextResult(MISSING_REPLY, 0, is_final_answer=True)
 
-    grouped: dict[str, list[str]] = {}
+    grouped: dict[str, list[Chunk]] = {}
     for _, title, chunk in results:
         grouped.setdefault(title, []).append(chunk)
 
@@ -247,8 +336,10 @@ Question: {question}
 def groq_complete(prompt: str) -> str | None:
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
+        print("[RAG] No GROQ_API_KEY set, using extractive fallback")
         return None
 
+    api_url = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
     payload = {
         "model": os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
         "temperature": 0.1,
@@ -258,11 +349,12 @@ def groq_complete(prompt: str) -> str | None:
         ],
     }
     request = urllib.request.Request(
-        "https://api.groq.com/openai/v1/chat/completions",
+        api_url,
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "User-Agent": "ReszVault/1.0",
         },
         method="POST",
     )
@@ -270,22 +362,38 @@ def groq_complete(prompt: str) -> str | None:
         with urllib.request.urlopen(request, timeout=40) as response:
             data = json.loads(response.read().decode("utf-8"))
             return data["choices"][0]["message"]["content"].strip()
-    except Exception:
+    except Exception as e:
+        print(f"[RAG] LLM API failed: {e}")
         return None
 
 
-def extractive_answer(question: str, books: list[BookContext]) -> str:
+def extractive_answer(
+    question: str,
+    books: list[BookContext],
+    use_hybrid: bool = True,
+) -> str:
     """Fallback used when no GROQ_API_KEY is set or the API call fails."""
-    result = prepare_context(question, books)
+    result = prepare_context(question, books, use_hybrid=use_hybrid)
     if result.is_final_answer:
         return result.text
 
     force_all = wants_full_list(question)
-    results = retrieve_across_books(question, books, force_all=force_all)
+    results = retrieve_across_books(question, books, force_all=force_all, use_hybrid=use_hybrid)
+
+    if not results:
+        return MISSING_REPLY
+
+    # For fact queries, return the raw chunk text directly — no compact_text
+    # deduplication that might strip the answer.
+    if is_fact_query(question):
+        _, title, chunk = results[0]
+        chunk_text = chunk.text if isinstance(chunk, Chunk) else chunk
+        return f"From **{title}**: {chunk_text}"
 
     candidates: list[tuple[str, str]] = []  # (title, sentence)
     for _, title, chunk in results:
-        for sentence in split_sentences(compact_text(chunk, 900)):
+        chunk_text = chunk.text if isinstance(chunk, Chunk) else chunk
+        for sentence in split_sentences(compact_text(chunk_text, 900)):
             candidates.append((title, sentence))
 
     if not candidates:
@@ -300,20 +408,27 @@ def extractive_answer(question: str, books: list[BookContext]) -> str:
     if not top:
         return MISSING_REPLY
 
-    if is_fact_query(question):
-        _, (title, sentence) = top[0]
-        return f"From **{title}**: {sentence}"
-
     lines = [f"From **{title}**: {sentence}" for _, (title, sentence) in top]
     return "\n- " + "\n- ".join(lines)
 
 
-def answer_question(question: str, books: list[BookContext]) -> tuple[str, int]:
-    result = prepare_context(question, books)
+def answer_question(
+    question: str,
+    books: list[BookContext],
+    use_hybrid: bool = True,
+) -> tuple[str, int]:
+    result = prepare_context(question, books, use_hybrid=use_hybrid)
     if result.is_final_answer:
+        # If we have books but retrieval failed, still try Groq with full
+        # document context so it can attempt an answer.
+        if books and result.used_chunks == 0:
+            full_context = extractive_project_summary(books)
+            answer = groq_complete(build_prompt(question, full_context))
+            if answer:
+                return answer.strip(), len(books)
         return result.text, result.used_chunks
 
     answer = groq_complete(build_prompt(question, result.text))
     if not answer:
-        answer = extractive_answer(question, books)
+        answer = extractive_answer(question, books, use_hybrid=use_hybrid)
     return answer.strip(), result.used_chunks

@@ -19,8 +19,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 from pydantic import BaseModel
 
-from document_parser import split_pdf_text
-from rag import BookContext, answer_question, index_chunk_terms
+from document_parser import Chunk, split_pdf_chunks
+from rag import BookContext, answer_question
 from storage import UPLOAD_DIR, db, init_db, row_to_dict, utc_now
 
 
@@ -39,7 +39,7 @@ def load_local_env() -> None:
         key, value = line.split("=", 1)
         key = key.strip()
         value = value.strip().strip('"').strip("'")
-        os.environ.setdefault(key, value)
+        os.environ[key] = value
 
 
 load_local_env()
@@ -73,6 +73,7 @@ class ChatRequest(BaseModel):
     question: str
     bookId: str | None = None
     bookIds: list[str] | None = None
+    useHybrid: bool = True
 
 
 class EmailAuthRequest(BaseModel):
@@ -215,26 +216,16 @@ def load_books_for_chat(
     with db() as conn:
         for row in rows:
             chunks = conn.execute(
-                "SELECT content, search_terms FROM chunks WHERE book_id = ? ORDER BY chunk_index",
+                "SELECT content, page FROM chunks WHERE book_id = ? ORDER BY chunk_index",
                 (row["id"],),
             ).fetchall()
-            contents = [chunk["content"] for chunk in chunks]
-            term_sets: list[set[str]] = []
-            for chunk in chunks:
-                if chunk["search_terms"]:
-                    try:
-                        term_sets.append(set(json.loads(chunk["search_terms"])))
-                        continue
-                    except (TypeError, json.JSONDecodeError):
-                        pass
-                term_sets.append(index_chunk_terms(chunk["content"]))
+            chunk_objects = [Chunk(text=chunk["content"], page=chunk["page"]) for chunk in chunks]
 
             books.append(
                 BookContext(
                     id=row["id"],
                     title=row["title"],
-                    chunks=contents,
-                    chunk_terms=term_sets,
+                    chunks=chunk_objects,
                 )
             )
 
@@ -264,7 +255,7 @@ def chat_block_reason(owner: str | None, book_id: str | None, book_ids: list[str
 def process_uploaded_book(book_id: str, pdf_bytes: bytes) -> None:
     try:
         time.sleep(1.2)
-        chunks = split_pdf_text(pdf_bytes)
+        chunks = split_pdf_chunks(pdf_bytes)
         if not chunks:
             raise ValueError("No readable text found in PDF.")
 
@@ -272,13 +263,13 @@ def process_uploaded_book(book_id: str, pdf_bytes: bytes) -> None:
             conn.execute("DELETE FROM chunks WHERE book_id = ?", (book_id,))
             for index, chunk in enumerate(chunks):
                 conn.execute(
-                    "INSERT INTO chunks (id, book_id, content, search_terms, chunk_index, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO chunks (id, book_id, content, chunk_index, page, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                     (
                         f"chunk_{uuid.uuid4().hex}",
                         book_id,
-                        chunk,
-                        json.dumps(sorted(index_chunk_terms(chunk))),
+                        chunk.text,
                         index,
+                        chunk.page,
                         utc_now(),
                     ),
                 )
@@ -574,7 +565,7 @@ def chat(
     if block_reason:
         raise HTTPException(status_code=409, detail=block_reason)
     books = load_books_for_chat(owner, payload.bookId, payload.bookIds)
-    answer, sources_used = answer_question(payload.question, books)
+    answer, sources_used = answer_question(payload.question, books, use_hybrid=payload.useHybrid)
     return {"success": True, "question": payload.question, "answer": answer, "sourcesUsed": sources_used}
 
 
@@ -591,7 +582,7 @@ def chat_stream(
     if block_reason:
         raise HTTPException(status_code=409, detail=block_reason)
     books = load_books_for_chat(owner, payload.bookId, payload.bookIds)
-    answer, sources_used = answer_question(payload.question, books)
+    answer, sources_used = answer_question(payload.question, books, use_hybrid=payload.useHybrid)
 
     def events():
         for char in answer:

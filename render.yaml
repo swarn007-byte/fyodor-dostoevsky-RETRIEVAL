@@ -11,6 +11,10 @@ services:
       - key: FRONTEND_ORIGIN
         value: https://reszvault.vercel.app
       - key: BACKEND_PUBLIC_URL
-        value: https://reszvault.vercel.app
+        value: https://reszvault.onrender.com
       - key: GROQ_MODEL
-        value: llama-3.1-8b-instant
+        value: openai/gpt-oss-20b
+      - key: GROQ_API_URL
+        value: https://api.groq.com/openai/v1/chat/completions
+      - key: GROQ_API_KEY
+        sync: false
