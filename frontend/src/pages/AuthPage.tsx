@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { authClient, useSession } from "../lib/auth-client";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { authClient, useSession, setSessionToken } from "../lib/auth-client";
 
 type Mode = "sign-in" | "sign-up";
 type ProviderConfig = { google: boolean };
@@ -9,6 +9,7 @@ type ProviderConfig = { google: boolean };
 export function AuthPage() {
   const { data, isPending } = useSession();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,6 +19,15 @@ export function AuthPage() {
   const [providers, setProviders] = useState<ProviderConfig>({
     google: true,
   });
+
+  // Capture session_token from Google OAuth redirect (Vercel strips Set-Cookie)
+  useEffect(() => {
+    const token = searchParams.get("session_token");
+    if (token) {
+      setSessionToken(token);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     let alive = true;

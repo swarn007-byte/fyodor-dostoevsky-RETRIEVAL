@@ -462,8 +462,13 @@ def google_callback(request: Request, code: str, state: str = "/projects") -> Re
         else:
             user_id = user["id"]
             conn.execute("UPDATE users SET name = ?, image = ? WHERE id = ?", (profile.get("name") or user["name"], profile.get("picture") or user.get("image"), user_id))
-    create_session(response, user_id)
-    return response
+    session = create_session(response, user_id)
+    target = f"{frontend}{safe_callback_path(state)}"
+    token = session.get("token")
+    if token:
+        sep = "&" if "?" in target else "?"
+        target = f"{target}{sep}session_token={token}"
+    return RedirectResponse(target)
 
 
 @app.get("/books")
